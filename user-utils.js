@@ -1,7 +1,11 @@
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firebase } from "./firebase-utils.js";
 import { isBefore, addHours } from "date-fns";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 
 const SESSION_COLLECTION_NAME = "sessions";
 const USER_COLLECTION_NAME = "users";
@@ -46,6 +50,34 @@ export async function getUserFromRequest(request) {
   const user = await getUserByUid(data.uid);
 
   return user;
+}
+
+export async function createEmailUser(email, password, name, response) {
+  const auth = getAuth();
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const authUser = userCredential.user;
+    const balance = 0;
+
+    const user = {
+      name,
+      email,
+      balance,
+      authUid: authUser.uid,
+    };
+
+    await createUserSession(authUser.uid, authUser.accessToken, response);
+    await updateUser(user);
+
+    return user;
+  } catch (error) {
+    console.log("Error logging in user", error.code, error.message);
+    throw error;
+  }
 }
 
 export async function loginUserByEmail(email, password, response) {

@@ -8,7 +8,7 @@ export default class BalanceApi {
       const user = await getUserFromRequest(request, response);
 
       const amount = request.body.amount;
-      const newBalance = user.balance - amount;
+      const newBalance = user.balance + amount;
 
       const transactions = updateTransactionArray(
         user.deposits,
