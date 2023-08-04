@@ -28,6 +28,12 @@ export default class BalanceApi {
       const user = await getUserFromRequest(request, response);
 
       const amount = request.body.amount;
+
+      if (amount > user.balance) {
+        response.status(500);
+        return response.send({ errorMessage: "Not enough funds" });
+      }
+
       const newBalance = user.balance - amount;
 
       const transactions = updateTransactionArray(
