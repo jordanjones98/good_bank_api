@@ -1,7 +1,7 @@
 import express from "express";
 import { firebase } from "./firebase-utils.js";
 import BalanceApi from "./balance.js";
-import UserApi from "./user.js";
+import UserApi from "./user-routes.js";
 import cookieParser from "cookie-parser";
 
 const PORT = 3000;

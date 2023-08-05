@@ -2,6 +2,7 @@ import {
   loginUserByEmail,
   getUserFromRequest,
   createEmailUser,
+  logoutUser,
 } from "./user-utils.js";
 
 export default class UserApi {
@@ -21,12 +22,21 @@ export default class UserApi {
       const name = request.body.name;
 
       const user = await createEmailUser(email, password, name, response);
-      response.send(user);
+      response.send(user.toJSON());
     });
 
     app.get("/me", async function (request, response) {
-      const user = await getUserFromRequest(request);
-      response.send(user);
+      try {
+        const user = await getUserFromRequest(request);
+        response.send(user.toJSON());
+      } catch (error) {
+        response.send({ errorMessage: error.message });
+      }
+    });
+
+    app.get("/logout", async function (request, response) {
+      await logoutUser(request, response);
+      response.send(200);
     });
   }
 }

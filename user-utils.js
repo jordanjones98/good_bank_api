@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { firebase } from "./firebase-utils.js";
 import { isBefore, addHours } from "date-fns";
 import {
@@ -7,8 +7,10 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 
+import User from "./User.js";
+
 const SESSION_COLLECTION_NAME = "sessions";
-const USER_COLLECTION_NAME = "users";
+export const USER_COLLECTION_NAME = "users";
 const SESSION_LENGTH_HOURS = 6;
 const COOKIE_NAME = "authToken";
 export async function getUserFromRequest(request) {
@@ -63,15 +65,10 @@ export async function createEmailUser(email, password, name, response) {
     const authUser = userCredential.user;
     const balance = 0;
 
-    const user = {
-      name,
-      email,
-      balance,
-      authUid: authUser.uid,
-    };
+    const user = new User(name, email, 0, [], [], authUser.uid);
 
     await createUserSession(authUser.uid, authUser.accessToken, response);
-    await updateUser(user);
+    await user.update();
 
     return user;
   } catch (error) {
@@ -109,7 +106,16 @@ async function getUserByUid(uid) {
     throw new Error("User not found");
   }
 
-  return docSnap.data();
+  const user = docSnap.data();
+
+  return new User(
+    user.name,
+    user.email,
+    user.balance,
+    user.deposits,
+    user.withdraws,
+    user.authUid
+  );
 }
 
 async function createUserSession(uid, token, response) {
@@ -129,14 +135,14 @@ async function createUserSession(uid, token, response) {
   }
 }
 
-export async function updateUser(user) {
-  const db = firebase.getDb();
-  try {
-    const userDoc = doc(db, USER_COLLECTION_NAME, user.authUid);
-    await setDoc(userDoc, user);
+async function removeUserSession(token) {
+  const sessionDoc = doc(db, SESSION_COLLECTION_NAME, token);
+  await deleteDoc(sessionDoc);
+  return;
+}
 
-    return user;
-  } catch (e) {
-    console.error("Error adding document: ", e);
-  }
+export async function logoutUser(request, response) {
+  const token = request.cookies[COOKIE_NAME];
+  response.clearCookie(COOKIE_NAME);
+  return;
 }
