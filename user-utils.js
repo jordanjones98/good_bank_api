@@ -73,6 +73,7 @@ export async function createEmailUser(email, password, name, response) {
 
     await createUserSession(authUser.uid, authUser.accessToken, response);
 
+    const user = new User(name, email, 0, [], [], authUser.uid);
     user.token = authUser.accessToken;
 
     await user.update();
