@@ -10,6 +10,7 @@ export default class User {
   withdraws;
   balance;
   authUid;
+  token;
 
   constructor(name, email, balance, deposits, withdraws, authUid) {
     this.name = name;
@@ -20,8 +21,8 @@ export default class User {
     this.authUid = authUid;
   }
 
-  toJSON() {
-    return {
+  toJSON(withToken = false) {
+    const user = {
       email: this.email,
       name: this.name,
       balance: this.balance,
@@ -29,13 +30,21 @@ export default class User {
       deposits: this.deposits,
       withdraws: this.withdraws,
     };
+
+    if (withToken) {
+      user.token = this.token;
+    }
+
+    return user;
   }
 
   async deposit(amount) {
-    const newBalance = this.balance + amount;
+    const cleanAmount = +parseFloat(amount).toFixed(2);
+
+    const newBalance = this.balance + cleanAmount;
 
     const transactions = this.updateTransactionArray(
-      amount,
+      cleanAmount,
       newBalance,
       this.deposits
     );
@@ -47,14 +56,16 @@ export default class User {
   }
 
   async withdraw(amount) {
+    const cleanAmount = +parseFloat(amount).toFixed(2);
+
     if (amount > this.balance) {
       throw new Error("Withdraw Amount Larger than Balance");
     }
 
-    const newBalance = this.balance - amount;
+    const newBalance = +parseFloat(this.balance - cleanAmount).toFixed(2);
 
     const transactions = this.updateTransactionArray(
-      amount,
+      cleanAmount,
       newBalance,
       this.withdraws
     );
@@ -82,8 +93,8 @@ export default class User {
 
     transactions.push({
       date: format(new Date(), "MM/dd/yyyy 'at' h:mm a"),
-      amount: amount.toFixed(2),
-      balance: newBalance.toFixed(2),
+      amount: parseFloat(amount).toFixed(2),
+      balance: newBalance,
     });
 
     return transactions;

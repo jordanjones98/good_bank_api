@@ -12,8 +12,13 @@ export default class UserApi {
       const email = request.body.email;
       const password = request.body.password;
 
-      const user = await loginUserByEmail(email, password, response);
-      response.send(user);
+      try {
+        const user = await loginUserByEmail(email, password, response);
+        response.send(user.toJSON(true));
+      } catch (error) {
+        response.status(500);
+        response.send({ error: true, errorMessage: error.message });
+      }
     });
 
     app.post("/createaccount", async function (request, response) {
@@ -22,15 +27,15 @@ export default class UserApi {
       const name = request.body.name;
 
       const user = await createEmailUser(email, password, name, response);
-      response.send(user.toJSON());
+      response.send(user.toJSON(true));
     });
 
     app.get("/me", async function (request, response) {
       try {
         const user = await getUserFromRequest(request);
-        response.send(user.toJSON());
+        response.send(user.toJSON(true));
       } catch (error) {
-        response.send({ errorMessage: error.message });
+        response.send({ error: true, errorMessage: error.message });
       }
     });
 

@@ -18,7 +18,13 @@ export async function getUserFromRequest(request) {
     return isBefore(new Date(expireDate), new Date());
   };
 
-  const token = request.cookies[COOKIE_NAME];
+  let token;
+
+  token = request.get("Authorization");
+
+  if (!token) {
+    token = request.cookies[COOKIE_NAME];
+  }
 
   if (!token) {
     throw Error("Error Getting User");
@@ -65,9 +71,10 @@ export async function createEmailUser(email, password, name, response) {
     const authUser = userCredential.user;
     const balance = 0;
 
-    const user = new User(name, email, 0, [], [], authUser.uid);
-
     await createUserSession(authUser.uid, authUser.accessToken, response);
+
+    user.token = authUser.accessToken;
+
     await user.update();
 
     return user;
@@ -89,6 +96,8 @@ export async function loginUserByEmail(email, password, response) {
 
     const user = await getUserByUid(authUser.uid);
     await createUserSession(authUser.uid, authUser.accessToken, response);
+
+    user.token = authUser.accessToken;
 
     return user;
   } catch (error) {
