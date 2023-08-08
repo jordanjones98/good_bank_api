@@ -44,8 +44,12 @@ export default class UserApi {
     });
 
     app.get("/logout", async function (request, response) {
-      await logoutUser(request, response);
-      response.send(200);
+      try {
+        await logoutUser(request, response);
+        response.send(200);
+      } catch (error) {
+        response.send({ error: true, errorMessage: error.message });
+      }
     });
   }
 }
