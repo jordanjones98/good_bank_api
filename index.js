@@ -5,7 +5,7 @@ import UserApi from "./user-routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 firebase.initializeApp();
 var app = express();
 app.use(cookieParser());
