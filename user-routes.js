@@ -26,8 +26,12 @@ export default class UserApi {
       const password = request.body.password;
       const name = request.body.name;
 
-      const user = await createEmailUser(email, password, name, response);
-      response.send(user.toJSON(true));
+      try {
+        const user = await createEmailUser(email, password, name, response);
+        response.send(user.toJSON(true));
+      } catch (error) {
+        response.send({ error: true, errorMessage: error.message });
+      }
     });
 
     app.get("/me", async function (request, response) {
